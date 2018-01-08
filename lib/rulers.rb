@@ -1,24 +1,36 @@
 require 'rulers/version'
 require 'rulers/routing'
+require 'pry'
 
 module Rulers
   class Application
     def call(env)
-      puts "Environment ${env}"
-      puts env['PATH_INFO']
       if env['PATH_INFO'] == '/favicon.ico'
-        return [
-          404, {'Content-Type' => 'text/html'}, []
-        ]
+        return [404, {'Content-Type' => 'text/html'}, []]
       end
+
+      if env['PATH_INFO'] =='/'
+        klass, action = get_home_controller_and_action
+        controller = klass.new(env)
+
+        text = controller.send(action) 
+
+        return [200, {'Content-Type' => 'text/html'}, [text]]
+      end
+
       klass, action = get_controller_and_action(env)
       controller = klass.new(env)
-      text = controller.send(action)
-      [200, {'Content-Type' => 'text/html'},
-       [text]
-      ]
+
+      begin
+        text = controller.send(action)
+      rescue Exception => e
+        puts "Error: #{e.message}"
+        return [500, {'Content-type' => 'text/html'}, ['Something went wrong']]
+      end
+
+      [200, {'Content-Type' => 'text/html'}, [text]]
     end
-  end 
+  end
 
   class Controller
     def initialize(env)

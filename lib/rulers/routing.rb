@@ -8,5 +8,9 @@ module Rulers
 
       [Object.const_get(controller), action]
     end
+
+    def get_home_controller_and_action
+      [Object.const_get('HomeController'), 'show']
+    end
   end
 end
